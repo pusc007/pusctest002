@@ -12,7 +12,7 @@ const startServer = async () => {
   const app = Express();
   //const basePath = Path.resolve("./public");
 
-  /*const virtualDirPath = "";
+  const virtualDirPath = "";
   const noiseUrl = virtualDirPath + "/noise";
   const noiseBackEndUrl = virtualDirPath + "/noiseBackEnd";
   app.use(noiseUrl, Express.static(__dirname + "/public/noise")); //使用靜態資料夾
@@ -45,7 +45,8 @@ const startServer = async () => {
     //auth: { authSource: "admin" },
     //user: "cai007",
     //pass: "abc123456",
-  });*/
+  });
+
   app.get("/", function (req, res) {
     res.send("aaa");
   });
