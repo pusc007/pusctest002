@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <title>Document</title>
+  </head>
+  <body>
+    <button id="btn01">測試預約</button>
+    <div id="text01"></div>
+    <script>
+      const btn01 = document.getElementById("btn01");
+      const text01 = document.getElementById("text01");
+      const editUser = (token, date) => {
+        /*const query = `mutation($city: String!, $site: String!, $date: Date!){
+                        reservation(city:$city,site:$site,date:$date)
+                      }`;
+        const variables = {
+          city: "高雄市",
+          site: "高雄市檢測站01號",
+          date: date,
+        };*/
+        const query = `mutation($date: Date!){
+                        extend(date:$date)
+                      }`;
+        const variables = {
+          date: date,
+        };
+        axios
+          .post(
+            "../api",
+            { query, variables },
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                "x-token": token,
+              },
+            }
+          )
+          .then((res) => res.data)
+          .then((data) => {
+            if (data.errors) {
+              data.errors.forEach((el) => {
+                try {
+                  const message = JSON.parse(el.message);
+                  alert(message.text);
+                } catch (error) {
+                  console.log(el.message);
+                }
+              });
+            } else {
+              //text01.textContent = JSON.stringify(data.data);
+              console.log(data.data);
+            }
+          });
+      };
+      btn01.addEventListener("click", () => {
+        //editUser("60ae0ffc556f9749383f5688", "123456000");
+        const token01 =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYjM1YjNlMTQ4YmExMzg4Mjk3ODU4MCIsImVtYWlsIjoiMTEyMjMzNDQ1NTY2Nzc4ODk5MDAiLCJuYW1lIjoi6buD5aSn5aSnIiwiaWF0IjoxNjIyNDQwNjg4LCJleHAiOjE2MjI1MjcwODh9.3JpnE_T6tDwyKF7Unx_mYOuQSINsupTXNtSeygH6wk4";
+        editUser(token01, new Date("2021-05-01"));
+        const token02 =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYWVlZWZhMjA2ZTA1NTUwNTQ3YjM3OSIsImVtYWlsIjoiMTIzNDU2MDAwNSIsIm5hbWUiOiLpu4PlpKflpKc1MCIsImlhdCI6MTYyMjQ0MTAxNCwiZXhwIjoxNjIyNTI3NDE0fQ.8VKu4GEweixl-cx6ZMoqUV2Ej1wZqAaSv5dem6eXL8c";
+        editUser(token02, new Date("2021-05-01"));
+        const token03 =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYWVlZWZhMjA2ZTA1NTUwNTQ3YjM3OSIsImVtYWlsIjoiMTIzNDU2MDAwNSIsIm5hbWUiOiLpu4PlpKflpKc1MCIsImlhdCI6MTYyMjQ0MTAxNCwiZXhwIjoxNjIyNTI3NDE0fQ.8VKu4GEweixl-cx6ZMoqUV2Ej1wZqAaSv5dem6eXL8c";
+        editUser(token03, new Date("2021-05-01"));
+        //editUser("60b35b3e148ba13882978580", "1234560005");
+      });
+    </script>
+  </body>
+</html>
