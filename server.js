@@ -12,7 +12,7 @@ const startServer = async () => {
   const app = Express();
   //const basePath = Path.resolve("./public");
 
-  const virtualDirPath = process.env.virtualDirPath || "";
+  const virtualDirPath = "";
   const noiseUrl = virtualDirPath + "/noise";
   const noiseBackEndUrl = virtualDirPath + "/noiseBackEnd";
   app.use(noiseUrl, Express.static(__dirname + "/public/noise")); //使用靜態資料夾
@@ -41,9 +41,9 @@ const startServer = async () => {
     };
     res.sendFile(Path.join(__dirname, "public/noiseBackEnd/index.html"), options); //發送index.html
   });*/
-  /*app.get(virtualDirPath + "/aaa", function (req, res) {
+  app.get("/aaa", function (req, res) {
     res.send(JSON.stringify(process.env)); //發送index.html
-  });*/
+  });
   const noiseBackEndServer = new ApolloServer({
     typeDefs: noiseBackEnd_typeDefs,
     resolvers: noiseBackEnd_resolvers,
@@ -54,8 +54,7 @@ const startServer = async () => {
   });
   noiseBackEndServer.applyMiddleware({ app, path: noiseBackEndUrl + "/api" });
 
-  //const mongodbUrl = process.env.MongodbUrl || "mongodb://cai007:abc123456@localhost:27017/Noise";
-  const mongodbUrl = process.env.MongodbUrl || "mongodb+srv://myCai:Yar9hMUcVUd2EWMz@cluster0.zu7hw.mongodb.net/Noise"; //測試連到mongodb雲端
+  const mongodbUrl = "mongodb+srv://myCai:Yar9hMUcVUd2EWMz@cluster0.zu7hw.mongodb.net/Noise"; //測試連到mongodb雲端
   await Mongoose.connect(mongodbUrl, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
