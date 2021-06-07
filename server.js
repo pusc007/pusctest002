@@ -12,16 +12,12 @@ const startServer = async () => {
   const app = Express();
   //const basePath = Path.resolve("./public");
 
-  const virtualDirPath = "";
+  /*const virtualDirPath = "";
   const noiseUrl = virtualDirPath + "/noise";
   const noiseBackEndUrl = virtualDirPath + "/noiseBackEnd";
   app.use(noiseUrl, Express.static(__dirname + "/public/noise")); //使用靜態資料夾
   app.use(noiseBackEndUrl, Express.static(__dirname + "/public/noiseBackEnd")); //使用靜態資料夾
 
-  //前台
-  /*app.get(virtualDirPath + "/noise", function (req, res) {
-    res.sendFile(basePath + "/noise/index.html"); //發送index.html
-  });*/
   const noiseServer = new ApolloServer({
     typeDefs: noise_typeDefs,
     resolvers: noise_resolvers,
@@ -32,18 +28,6 @@ const startServer = async () => {
   });
   noiseServer.applyMiddleware({ app, path: noiseUrl + "/api" });
 
-  //後台
-  /*app.get(virtualDirPath + "/noiseBackEnd", function (req, res) {
-    const options = {
-      headers: {
-        virtualDirPath: virtualDirPath,
-      },
-    };
-    res.sendFile(Path.join(__dirname, "public/noiseBackEnd/index.html"), options); //發送index.html
-  });*/
-  app.get("/aaa", function (req, res) {
-    res.send(JSON.stringify(process.env)); //發送index.html
-  });
   const noiseBackEndServer = new ApolloServer({
     typeDefs: noiseBackEnd_typeDefs,
     resolvers: noiseBackEnd_resolvers,
@@ -61,16 +45,12 @@ const startServer = async () => {
     //auth: { authSource: "admin" },
     //user: "cai007",
     //pass: "abc123456",
+  });*/
+  app.get("/", function (req, res) {
+    res.send("aaa");
   });
 
-  const port = process.env.PORT || 4000;
-  const host = process.env.BASE_URL || "localhost";
-  const baseUrl = `http://${host}:${port}`;
-  app.listen(port, () => {
-    console.log(`前台：${baseUrl}/noise`);
-    console.log(`後台：${baseUrl}/noiseBackEnd`);
-    //console.log(`前台用：${baseUrl}${noiseServer.graphqlPath}`);
-    //console.log(`後台用：${baseUrl}${noiseBackEndServer.graphqlPath}`);
-  });
+  const port = process.env.PORT || 5000;
+  app.listen(port, () => {});
 };
 startServer();
