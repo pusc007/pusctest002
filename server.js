@@ -54,8 +54,8 @@ const startServer = async () => {
   });
   noiseBackEndServer.applyMiddleware({ app, path: noiseBackEndUrl + "/api" });
 
-  const mongodbUrl = process.env.MongodbUrl || "mongodb://cai007:abc123456@localhost:27017/Noise";
-  //const mongodbUrl = process.env.MongodbUrl || "mongodb+srv://myCai:Yar9hMUcVUd2EWMz@cluster0.zu7hw.mongodb.net/Noise";//測試連到mongodb雲端
+  //const mongodbUrl = process.env.MongodbUrl || "mongodb://cai007:abc123456@localhost:27017/Noise";
+  const mongodbUrl = process.env.MongodbUrl || "mongodb+srv://myCai:Yar9hMUcVUd2EWMz@cluster0.zu7hw.mongodb.net/Noise"; //測試連到mongodb雲端
   await Mongoose.connect(mongodbUrl, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
