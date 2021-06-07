@@ -2,7 +2,7 @@
   "name": "API",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "nodemon": "nodemon --exec babel-node server.js",
     "build-server": "babel ./src -d ./server",
