@@ -10,30 +10,42 @@ const noiseBackEnd_resolvers = require("@src/graphql/noiseBackEnd/resolvers");
 const depthLimit = require("graphql-depth-limit");
 const startServer = async () => {
   const app = Express();
-  //const basePath = Path.resolve("./public");
 
   const virtualDirPath = process.env.virtualDirPath || "";
   const noiseUrl = virtualDirPath + "/noise";
   const noiseBackEndUrl = virtualDirPath + "/noiseBackEnd";
-  app.use(noiseUrl, Express.static(__dirname + "/public/noise")); //使用靜態資料夾
-  app.use(noiseBackEndUrl, Express.static(__dirname + "/public/noiseBackEnd")); //使用靜態資料夾
+  try {
+    const mongodbUrl = process.env.MongodbUrl || "mongodb://cai007:abc123456@localhost:27017/Noise";
+    //const mongodbUrl = process.env.MongodbUrl || "mongodb+srv://myCai:Yar9hMUcVUd2EWMz@cluster0.zu7hw.mongodb.net/Noise";//測試連到mongodb雲端
+    await Mongoose.connect(mongodbUrl, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      //auth: { authSource: "admin" },
+      //user: "cai007",
+      //pass: "abc123456",
+    });
 
-  //前台
-  /*app.get(virtualDirPath + "/noise", function (req, res) {
+    //const basePath = Path.resolve("./public");
+
+    app.use(noiseUrl, Express.static(__dirname + "/public/noise")); //使用靜態資料夾
+    app.use(noiseBackEndUrl, Express.static(__dirname + "/public/noiseBackEnd")); //使用靜態資料夾
+
+    //前台
+    /*app.get(virtualDirPath + "/noise", function (req, res) {
     res.sendFile(basePath + "/noise/index.html"); //發送index.html
   });*/
-  const noiseServer = new ApolloServer({
-    typeDefs: noise_typeDefs,
-    resolvers: noise_resolvers,
-    introspection: false,
-    playground: false,
-    context: ({ req }) => ({ token: req.headers["x-token"] }),
-    validationRules: [depthLimit(5)],
-  });
-  noiseServer.applyMiddleware({ app, path: noiseUrl + "/api" });
+    const noiseServer = new ApolloServer({
+      typeDefs: noise_typeDefs,
+      resolvers: noise_resolvers,
+      introspection: false,
+      playground: false,
+      context: ({ req }) => ({ token: req.headers["x-token"] }),
+      validationRules: [depthLimit(5)],
+    });
+    noiseServer.applyMiddleware({ app, path: noiseUrl + "/api" });
 
-  //後台
-  /*app.get(virtualDirPath + "/noiseBackEnd", function (req, res) {
+    //後台
+    /*app.get(virtualDirPath + "/noiseBackEnd", function (req, res) {
     const options = {
       headers: {
         virtualDirPath: virtualDirPath,
@@ -41,28 +53,26 @@ const startServer = async () => {
     };
     res.sendFile(Path.join(__dirname, "public/noiseBackEnd/index.html"), options); //發送index.html
   });*/
-  /*app.get(virtualDirPath + "/aaa", function (req, res) {
+    /*app.get(virtualDirPath + "/aaa", function (req, res) {
     res.send(JSON.stringify(process.env)); //發送index.html
   });*/
-  const noiseBackEndServer = new ApolloServer({
-    typeDefs: noiseBackEnd_typeDefs,
-    resolvers: noiseBackEnd_resolvers,
-    introspection: false,
-    playground: false,
-    context: ({ req }) => ({ token: req.headers["x-token"] }),
-    validationRules: [depthLimit(5)],
-  });
-  noiseBackEndServer.applyMiddleware({ app, path: noiseBackEndUrl + "/api" });
-
-  //const mongodbUrl = process.env.MongodbUrl || "mongodb://cai007:abc123456@localhost:27017/Noise";
-  const mongodbUrl = process.env.MongodbUrl || "mongodb+srv://myCai:Yar9hMUcVUd2EWMz@cluster0.zu7hw.mongodb.net/Noise"; //測試連到mongodb雲端
-  await Mongoose.connect(mongodbUrl, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    //auth: { authSource: "admin" },
-    //user: "cai007",
-    //pass: "abc123456",
-  });
+    const noiseBackEndServer = new ApolloServer({
+      typeDefs: noiseBackEnd_typeDefs,
+      resolvers: noiseBackEnd_resolvers,
+      introspection: false,
+      playground: false,
+      context: ({ req }) => ({ token: req.headers["x-token"] }),
+      validationRules: [depthLimit(5)],
+    });
+    noiseBackEndServer.applyMiddleware({ app, path: noiseBackEndUrl + "/api" });
+  } catch (e) {
+    app.get(noiseUrl, function (req, res) {
+      res.send("資料庫連接失敗");
+    });
+    app.get(noiseBackEndUrl, function (req, res) {
+      res.send("資料庫連接失敗");
+    });
+  }
 
   const port = process.env.PORT || 4000;
   const host = process.env.BASE_URL || "localhost";
