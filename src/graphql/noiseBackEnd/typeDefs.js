@@ -7,11 +7,20 @@ module.exports = gql`
     username: String!
     idcard: String!
     address: String!
-    redate: Date = null
-    exdate: Date = null
+    redateBoundS: Date!
+    redateBoundE: Date!
+    exdateBoundS: Date!
+    exdateBoundE: Date!
+    redateS: Date = null
+    redateE: Date = null
+    exdateS: Date = null
+    exdateE: Date = null
     city: String = ""
     site: String = ""
     result: String = ""
+    contactName: String = ""
+    contactPhone: String = ""
+    contactEmail: String = ""
   }
   input EditUserInput {
     casenum: String
@@ -19,11 +28,20 @@ module.exports = gql`
     username: String
     idcard: String
     address: String
-    redate: Date
-    exdate: Date
+    redateBoundS: Date
+    redateBoundE: Date
+    exdateBoundS: Date
+    exdateBoundE: Date
+    redateS: Date
+    redateE: Date
+    exdateS: Date
+    exdateE: Date
     city: String
     site: String
     result: String
+    contactName: String
+    contactPhone: String
+    contactEmail: String
   }
   type User {
     id: ID!
@@ -32,11 +50,20 @@ module.exports = gql`
     username: String!
     idcard: String!
     address: String!
-    redate: Date
-    exdate: Date
+    redateBoundS: Date!
+    redateBoundE: Date!
+    exdateBoundS: Date!
+    exdateBoundE: Date!
+    redateS: Date
+    redateE: Date
+    exdateS: Date
+    exdateE: Date
     city: String
     site: String
     result: String
+    contactName: String
+    contactPhone: String
+    contactEmail: String
     created: Date!
     updated: Date!
   }
@@ -44,36 +71,39 @@ module.exports = gql`
     token: String!
   }
 
+  input SiteInput {
+    sitename: String!
+    address: String!
+  }
+  input EditSiteInput {
+    sitename: String
+    address: String
+  }
+  type Site {
+    id: ID!
+    sitename: String!
+    address: String!
+    created: Date!
+    updated: Date!
+  }
+
   input OpentimeInput {
-    city: String!
     site: String!
-    date: Date!
+    dateS: Date! = null
+    dateE: Date! = null
     maxcount: Int = 20
   }
   input EditOpentimeInput {
-    date: Date
+    dateS: Date
+    dateE: Date
     maxcount: Int
   }
   type Opentime {
     id: ID!
     siteId: ID!
-    date: Date!
+    dateS: Date!
+    dateE: Date!
     maxcount: Int!
-    created: Date!
-    updated: Date!
-  }
-
-  input SiteInput {
-    city: String!
-    sitename: String!
-  }
-  input EditSiteInput {
-    sitename: String
-  }
-  type Site {
-    id: ID!
-    city: String!
-    sitename: String!
     created: Date!
     updated: Date!
   }
@@ -89,14 +119,10 @@ module.exports = gql`
     searchUsers(startDate: Date!, endDate: Date!, state: String!): [User!]!
 
     #搜尋驗車站點群
-    searchSites(city: String!): [Site!]!
-    #取得可驗車縣市
-    citys: [String!]!
+    sites: [Site!]!
 
-    #搜尋驗車開放時間
-    searchOpentime(city: String!, site: String!, date: Date!): Opentime!
     #搜尋驗車開放時間群
-    searchOpentimes(city: String!, site: String!, startDate: Date!, endDate: Date!): [Opentime!]!
+    searchOpentimes(site: String!, startDate: Date!, endDate: Date!): [Opentime!]!
 
     #驗證token
     verificationToken: Boolean
@@ -130,5 +156,7 @@ module.exports = gql`
     editOpentime(id: String!, input: EditOpentimeInput!): String
     #刪除驗車開放時間
     deleteOpentime(id: String!): String
+    #刪除驗車開放時間群
+    deleteOpentimes(id: [String!]!): String
   }
 `;

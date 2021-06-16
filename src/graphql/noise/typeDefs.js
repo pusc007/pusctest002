@@ -7,11 +7,20 @@ module.exports = gql`
     username: String!
     idcard: String!
     address: String!
-    redate: Date
-    exdate: Date
+    redateBoundS: Date!
+    redateBoundE: Date!
+    exdateBoundS: Date!
+    exdateBoundE: Date!
+    redateS: Date
+    redateE: Date
+    exdateS: Date
+    exdateE: Date
     city: String
     site: String
     result: String
+    contactName: String
+    contactPhone: String
+    contactEmail: String
     created: Date!
     updated: Date!
   }
@@ -19,34 +28,40 @@ module.exports = gql`
     token: String!
   }
   type Site {
-    city: String!
     sitename: String!
+    address: String!
     created: Date!
     updated: Date!
   }
   type Opentime {
-    date: Date!
-    count: Int
+    siteId: ID!
+    dateS: Date!
+    dateE: Date!
     maxcount: Int!
+    count: Int
     created: Date!
     updated: Date!
   }
   type Query {
     #取得個人資訊
     user: User!
-    #取得可驗車縣市
-    citys: [String!]!
     #搜尋驗車站點群
-    searchSites(city: String!): [Site!]!
+    sites: [Site!]!
     #搜尋驗車開放時間群
-    searchOpentimes(type: String, city: String!, site: String!, startDate: Date!, endDate: Date!): [Opentime!]!
+    searchOneDateOpentimes(type: String!, site: String!, date: Date!): [Opentime!]!
+    #搜尋驗車開放時間群
+    searchOpentimes(type: String!, site: String!, dateS: Date!, dateE: Date!): [Opentime!]!
   }
   type Mutation {
     #登入
     login(casenum: String!, carnum: String!): Token!
     #預約驗車
-    reservation(city: String!, site: String!, date: Date!): String
-    #更改展延日期
-    extend(date: Date!): String
+    reservation(site: String!, dateS: Date!, dateE: Date!): String
+    #展延驗車
+    extension(site: String!, dateS: Date!, dateE: Date!): String
+    #移轉縣市
+    transfer(city: String!): String
+    #編輯聯絡資訊
+    editContact(contactName: String!, contactPhone: String!, contactEmail: String!): String
   }
 `;

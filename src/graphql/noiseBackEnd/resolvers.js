@@ -87,58 +87,40 @@ module.exports = {
       await checkToken(context.token);
 
       //條件查詢
-      endDate += 86400000;
       if (state === "reserv") {
-        return await User.find({ redate: { $gte: startDate, $lt: endDate } });
+        return await User.find({
+          redateS: { $lte: endDate },
+          redateE: { $gte: startDate },
+        });
       } else if (state === "extend") {
-        return await User.find({ exdate: { $gte: startDate, $lt: endDate } });
-      } else if (state === "created") {
-        return await User.find({ created: { $gte: startDate, $lt: endDate } });
-      } else if (state === "updated") {
-        return await User.find({ updated: { $gte: startDate, $lt: endDate } });
+        return await User.find({
+          exdateS: { $lte: endDate },
+          exdateE: { $gte: startDate },
+        });
       } else if (state === "all") {
         return await User.find();
       }
     },
-
-    searchSites: async (root, { city }, context) => {
+    sites: async (root, {}, context) => {
       //檢查令牌
       await checkToken(context.token);
 
       //查詢檢測站點
-      return await Site.find({ city });
+      return await Site.find();
     },
-
-    citys: async (root, {}, context) => {
+    searchOpentimes: async (root, { site, startDate, endDate }, context) => {
       //檢查令牌
       await checkToken(context.token);
 
-      //取得可檢驗縣市
-      return await Site.distinct("city");
-    },
-
-    searchOpentime: async (root, { city, site, date }, context) => {
-      //檢查令牌
-      await checkToken(context.token);
-
-      //查詢開放時間
-      const siteDoc = await Site.findOne({ city, sitename: site });
-      if (!siteDoc) throw new Error(JSON.stringify({ type: "siteNoExisted", text: "檢測站點不存在" }));
-
-      const opentime = await Opentime.findOne({ siteId: siteDoc._id, date });
-      if (!opentime) throw new Error(JSON.stringify({ type: "dataNoExisted", text: "無資料" }));
-      return opentime;
-    },
-    searchOpentimes: async (root, { city, site, startDate, endDate }, context) => {
-      //檢查令牌
-      await checkToken(context.token);
-
-      const siteDoc = await Site.findOne({ city, sitename: site });
+      const siteDoc = await Site.findOne({ sitename: site });
       if (!siteDoc) throw new Error(JSON.stringify({ type: "siteNoExisted", text: "檢測站點不存在" }));
 
       //查詢開放時間
-      endDate += 86400000;
-      const opentimes = await Opentime.find({ siteId: siteDoc._id, date: { $gte: startDate, $lt: endDate } });
+      const opentimes = await Opentime.find({
+        siteId: siteDoc._id,
+        dateS: { $lte: endDate },
+        dateE: { $gte: startDate },
+      });
       return opentimes;
     },
     verificationToken: async (root, {}, context) => {
@@ -177,8 +159,8 @@ module.exports = {
         await user.save();
       } catch (e) {
         if (e.code === 11000) {
-          if (e.keyPattern.casenum) {
-            throw new Error(JSON.stringify({ type: "casenumExisted", text: "公文號已存在" }));
+          if (e.keyPattern.casenum && e.keyPattern.carnum) {
+            throw new Error(JSON.stringify({ type: "casenum_carnumExisted", text: "公文號及車牌號已存在" }));
           }
         }
       }
@@ -191,7 +173,7 @@ module.exports = {
       const list = input.map((el) => {
         return {
           updateOne: {
-            filter: { casenum: el.casenum },
+            filter: { casenum: el.casenum, carnum: el.carnum },
             update: { $set: el },
             upsert: true,
           },
@@ -217,8 +199,8 @@ module.exports = {
         await user.save();
       } catch (e) {
         if (e.code === 11000) {
-          if (e.keyPattern.casenum) {
-            throw new Error(JSON.stringify({ type: "casenumExisted", text: "公文號已存在" }));
+          if (e.keyPattern.casenum && e.keyPattern.carnum) {
+            throw new Error(JSON.stringify({ type: "casenum_carnumExisted", text: "公文號及車牌號已存在" }));
           }
         }
       }
@@ -248,7 +230,7 @@ module.exports = {
         await site.save();
       } catch (e) {
         if (e.code === 11000) {
-          if (e.keyPattern.city && e.keyPattern.sitename) {
+          if (e.keyPattern.sitename) {
             throw new Error(JSON.stringify({ type: "siteExisted", text: "檢測站點已存在" }));
           }
         }
@@ -262,12 +244,14 @@ module.exports = {
       if (!site) throw new Error(JSON.stringify({ type: "idNoExisted", text: "ID不存在" }));
 
       //編輯檢測站點
-      site.sitename = input.sitename;
+      for (let key in input) {
+        site[key] = input[key];
+      }
       try {
         await site.save();
       } catch (e) {
         if (e.code === 11000) {
-          if (e.keyPattern.city && e.keyPattern.sitename) {
+          if (e.keyPattern.sitename) {
             throw new Error(JSON.stringify({ type: "siteExisted", text: "檢測站點已存在" }));
           }
         }
@@ -288,16 +272,21 @@ module.exports = {
       await checkToken(context.token);
 
       //取得檢測站點
-      const site = await Site.findOne({ city: input.city, sitename: input.site });
+      const site = await Site.findOne({ sitename: input.site });
       if (!site) throw new Error(JSON.stringify({ type: "siteNoExisted", text: "檢測站點不存在" }));
 
       //建立開放時間
-      const opentime = new Opentime({ siteId: site._id, date: input.date, maxcount: input.maxcount });
+      const opentime = new Opentime({
+        siteId: site._id,
+        dateS: input.dateS,
+        dateE: input.dateE,
+        maxcount: input.maxcount,
+      });
       try {
         await opentime.save();
       } catch (e) {
         if (e.code === 11000) {
-          if (e.keyPattern.siteId && e.keyPattern.date) {
+          if (e.keyPattern.siteId && e.keyPattern.dateS && e.keyPattern.dateE) {
             throw new Error(JSON.stringify({ type: "opentimeExisted", text: "開放時間已存在" }));
           }
         }
@@ -330,6 +319,13 @@ module.exports = {
 
       //刪除檢測站點
       await Opentime.deleteOne({ _id: id });
+    },
+    deleteOpentimes: async (root, { id }, context) => {
+      //檢查令牌
+      await checkToken(context.token);
+
+      //刪除檢測站點
+      await Opentime.deleteMany({ _id: id });
     },
   },
 };
