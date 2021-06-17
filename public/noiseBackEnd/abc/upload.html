@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <title>Document</title>
+    <style>
+      #img01 {
+        max-width: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <input id="btn01" type="file" />
+    <div class="container">
+      <img id="img01" />
+    </div>
+    <script>
+      const btn01 = document.getElementById("btn01");
+      const img01 = document.getElementById("img01");
+      btn01.addEventListener("change", function (e) {
+        const file = this.files[0];
+
+        const fr = new FileReader();
+        fr.onload = function (e) {
+          img01.src = e.target.result;
+          //const imgBuffer = new Buffer.from(e.target.result, "ascii");
+          //console.log(imgBuffer);
+        };
+
+        fr.readAsDataURL(file);
+      });
+    </script>
+  </body>
+</html>

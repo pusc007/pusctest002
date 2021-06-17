@@ -255,6 +255,8 @@ module.exports = {
     transfer: async (root, { city }, context) => {
       const user = await checkToken(context.token);
 
+      if (user.city) throw new Error(JSON.stringify({ type: "transfer", text: "已移轉過" }));
+
       user.city = city;
       await user.save();
     },
