@@ -1,5 +1,6 @@
 const { gql } = require("apollo-server-express");
 module.exports = gql`
+  scalar Upload
   scalar Date
   input UserInput {
     casenum: String!
@@ -11,16 +12,47 @@ module.exports = gql`
     redateBoundE: Date!
     exdateBoundS: Date!
     exdateBoundE: Date!
-    redateS: Date = null
-    redateE: Date = null
-    exdateS: Date = null
-    exdateE: Date = null
-    city: String = ""
-    site: String = ""
-    result: String = ""
-    contactName: String = ""
-    contactPhone: String = ""
-    contactEmail: String = ""
+    redateS: Date
+    redateE: Date
+    exdateS: Date
+    exdateE: Date
+    city: String
+    resite: String
+    exsite: String
+    result: String
+    contactName: String
+    contactPhone: String
+    contactEmail: String
+    postponedContent: String
+    postponedYM: String
+    postponedProve: Upload
+    displayPages: String
+  }
+  input UserInput0 {
+    casenum: String!
+    carnum: String!
+    username: String!
+    idcard: String!
+    address: String!
+    redateBoundS: Date!
+    redateBoundE: Date!
+    exdateBoundS: Date!
+    exdateBoundE: Date!
+    redateS: Date
+    redateE: Date
+    exdateS: Date
+    exdateE: Date
+    city: String
+    resite: String
+    exsite: String
+    result: String
+    contactName: String
+    contactPhone: String
+    contactEmail: String
+    postponedContent: String
+    postponedYM: String
+    postponedProve: String
+    displayPages: String
   }
   input EditUserInput {
     casenum: String
@@ -37,11 +69,16 @@ module.exports = gql`
     exdateS: Date
     exdateE: Date
     city: String
-    site: String
+    resite: String
+    exsite: String
     result: String
     contactName: String
     contactPhone: String
     contactEmail: String
+    postponedContent: String
+    postponedYM: String
+    postponedProve: Upload
+    displayPages: String
   }
   type User {
     id: ID!
@@ -59,11 +96,16 @@ module.exports = gql`
     exdateS: Date
     exdateE: Date
     city: String
-    site: String
+    resite: String
+    exsite: String
     result: String
     contactName: String
     contactPhone: String
     contactEmail: String
+    postponedContent: String
+    postponedYM: String
+    postponedProve: String
+    displayPages: String
     created: Date!
     updated: Date!
   }
@@ -89,8 +131,8 @@ module.exports = gql`
 
   input OpentimeInput {
     site: String!
-    dateS: Date! = null
-    dateE: Date! = null
+    dateS: Date!
+    dateE: Date!
     maxcount: Int = 20
   }
   input EditOpentimeInput {
@@ -126,6 +168,9 @@ module.exports = gql`
 
     #驗證token
     verificationToken: Boolean
+
+    #下載圖片
+    download(fileSrc: String!): String
   }
   type Mutation {
     #密碼加密
@@ -135,7 +180,7 @@ module.exports = gql`
     #建立驗車使用者
     createUser(input: UserInput!): String
     #匯入驗車使用者群
-    importUsers(input: [UserInput!]!): String
+    importUsers(input: [UserInput0!]!): String
     #編輯驗車使用者
     editUser(id: String!, input: EditUserInput!): String
     #刪除驗車使用者

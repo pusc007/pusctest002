@@ -42,11 +42,16 @@ const UserSchema = new Schema(
     exdateS: Schema.Types.Date,
     exdateE: Schema.Types.Date,
     city: Schema.Types.String,
-    site: Schema.Types.String,
+    resite: Schema.Types.String,
+    exsite: Schema.Types.String,
     result: Schema.Types.String,
     contactName: Schema.Types.String,
     contactPhone: Schema.Types.String,
     contactEmail: Schema.Types.String,
+    postponedContent: Schema.Types.String,
+    postponedYM: Schema.Types.String,
+    postponedProve: Schema.Types.String,
+    displayPages: Schema.Types.String,
   },
   { timestamps: { createdAt: "created", updatedAt: "updated" } }
 );

@@ -1,6 +1,35 @@
 const { Admin, User, Site, Opentime } = require("@src/mongoose/Noise");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const fs = require("fs");
+const { GraphQLUpload } = require("graphql-upload");
+const ftp = require("basic-ftp");
+const stream = require("stream");
+const process = require("process");
+
+const ftp_host = process.env.ftp_host || "127.0.0.1";
+const ftp_port = process.env.ftp_port || 21;
+const ftp_dirname = process.env.ftp_dirname || "uploads";
+const ftp_user = process.env.ftp_user || "cai_test";
+const ftp_pass = process.env.ftp_pass || "123456";
+
+const client = new ftp.Client();
+client.ftp.verbose = true;
+const ftpConnect = async (client) => {
+  try {
+    await client.access({
+      host: ftp_host,
+      port: ftp_port,
+      user: ftp_user,
+      password: ftp_pass,
+    });
+  } catch (e) {
+    //console.log(err);
+    //throw new Error(JSON.stringify({ type: "error", text: e.message }));
+    throw new Error(JSON.stringify({ type: "error", text: "錯誤" }));
+  }
+};
+ftpConnect(client);
 
 const SECRET = "93643860-b464-11eb-8529-0242ac130003";
 
@@ -28,37 +57,64 @@ const checkToken = async (token) => {
     throw new Error(JSON.stringify({ type: "tokenNoExisted", text: "無認證，請重新登入" }));
   }
 };
-/*console.log(opentimes0);
 
-      const opentimes = await Opentime.aggregate([
-        {
-          $match: { date: { $gte: new Date(startDate), $lt: new Date(endDate) } },
-        },
-        {
-          $lookup: {
-            from: "sites",
-            localField: "site",
-            foreignField: "_id",
-            as: "site",
-          },
-        },
-        {
-          $project: {
-            id: "$_id",
-            site: { $arrayElemAt: ["$site", 0] },
-            date: 1,
-            maxcount: 1,
-            created: 1,
-            updated: 1,
-          },
-        },
-        {
-          $match: { "site.city": city, "site.sitename": site },
-        },
-      ]);
-      //console.log(opentimes);
-      return opentimes;*/
+const uploadFTP = async (client, stream, src) => {
+  /*
+      const path = "uploads/" + filename;
+      stream
+        .pipe(fs.createWriteStream(path))
+        .on("finish", () => {
+          console.log("ok");
+        })
+        .on("error", (err) => {
+          console.log("fail");
+        });*/
+  if (client.closed) await ftpConnect(client);
+  try {
+    await client.uploadFrom(stream, src);
+  } catch (e) {
+    if (e.code === 550) {
+      throw new Error(JSON.stringify({ type: "fail", text: "失敗" }));
+    } else {
+      throw new Error(JSON.stringify({ type: "error", text: e.message }));
+    }
+  }
+};
+const deleteFTP = async (client, src) => {
+  if (client.closed) await ftpConnect(client);
+  try {
+    await client.remove(src);
+  } catch (e) {
+    if (e.code === 550) {
+      throw new Error(JSON.stringify({ type: "fail", text: "失敗" }));
+    } else {
+      throw new Error(JSON.stringify({ type: "error", text: e.message }));
+    }
+  }
+};
+const downloadFTP = async (client, src) => {
+  if (client.closed) await ftpConnect(client);
+  try {
+    const r = [];
+    const lowCaseTransform = await new stream.Transform();
+    lowCaseTransform._transform = async (fileChunk, encoding, callback) => {
+      r.push(fileChunk);
+      callback();
+    };
+    lowCaseTransform.pipe(process.stdout);
+    await client.downloadTo(lowCaseTransform, src);
+    const buffer = Buffer.concat(r);
+    return buffer.toString("base64");
+  } catch (e) {
+    if (e.code === 550) {
+      throw new Error(JSON.stringify({ type: "fail", text: "失敗" }));
+    } else {
+      throw new Error(JSON.stringify({ type: "error", text: e.message }));
+    }
+  }
+};
 module.exports = {
+  Upload: GraphQLUpload,
   Query: {
     users: async (root, {}, context) => {
       //檢查令牌
@@ -129,6 +185,11 @@ module.exports = {
 
       return true;
     },
+    download: async (root, { fileSrc }, context) => {
+      //檢查令牌
+      await checkToken(context.token);
+      return await downloadFTP(client, fileSrc);
+    },
   },
   Mutation: {
     passwordEncrypt: async (root, { password }, context) => {
@@ -154,6 +215,13 @@ module.exports = {
       await checkToken(context.token);
 
       //建立使用者
+      if (input.postponedProve) {
+        const { createReadStream, mimetype, encoding, filename } = await input.postponedProve;
+        const stream = createReadStream();
+        const src = `${ftp_dirname}/prove/${input.casenum}-${input.carnum}.jpg`;
+        await uploadFTP(client, stream, src);
+        input.postponedProve = src;
+      }
       const user = new User(input);
       try {
         await user.save();
@@ -192,6 +260,17 @@ module.exports = {
       if (!user) throw new Error(JSON.stringify({ type: "idNoExisted", text: "ID不存在" }));
 
       //編輯使用者
+      if (input.postponedProve) {
+        const { createReadStream, mimetype, encoding, filename } = await input.postponedProve;
+        const stream = createReadStream();
+        const src = `${ftp_dirname}/prove/${user.casenum}-${user.carnum}.jpg`;
+        await uploadFTP(client, stream, src);
+        input.postponedProve = src;
+      } else if (input.hasOwnProperty("postponedProve")) {
+        const src = `${ftp_dirname}/prove/${user.casenum}-${user.carnum}.jpg`;
+        await deleteFTP(client, src);
+        input.postponedProve = null;
+      }
       for (let key in input) {
         user[key] = input[key];
       }

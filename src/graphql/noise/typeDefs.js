@@ -16,11 +16,16 @@ module.exports = gql`
     exdateS: Date
     exdateE: Date
     city: String
-    site: String
+    resite: String
+    exsite: String
     result: String
     contactName: String
     contactPhone: String
     contactEmail: String
+    postponedContent: String
+    postponedYM: String
+    postponedProve: String
+    displayPages: String
     created: Date!
     updated: Date!
   }
@@ -51,6 +56,8 @@ module.exports = gql`
     searchOneDateOpentimes(type: String!, site: String!, date: Date!): [Opentime!]!
     #搜尋驗車開放時間群
     searchOpentimes(type: String!, site: String!, dateS: Date!, dateE: Date!): [Opentime!]!
+    #驗證token
+    verificationToken: Boolean
   }
   type Mutation {
     #登入

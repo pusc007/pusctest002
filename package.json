@@ -20,17 +20,18 @@
     "@babel/node": "^7.13.13",
     "@babel/preset-env": "^7.14.0",
     "apollo-server-express": "^2.24.0",
+    "apollo-upload-server": "^7.1.0",
+    "basic-ftp": "^4.6.6",
     "bcrypt": "^5.0.1",
-    "cors": "^2.8.5",
     "express": "^4.17.1",
     "graphql": "^15.5.0",
     "graphql-depth-limit": "^1.1.0",
+    "graphql-upload": "^12.0.0",
     "jsonwebtoken": "^8.5.1",
     "module-alias": "^2.2.2",
     "moment": "^2.29.1",
     "mongoose": "^5.12.7",
-    "nodemon": "^2.0.7",
-    "queue": "^6.0.2"
+    "nodemon": "^2.0.7"
   },
   "devDependencies": {}
 }

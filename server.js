@@ -8,6 +8,7 @@ const noise_resolvers = require("@src/graphql/noise/resolvers");
 const noiseBackEnd_typeDefs = require("@src/graphql/noiseBackEnd/typeDefs");
 const noiseBackEnd_resolvers = require("@src/graphql/noiseBackEnd/resolvers");
 const depthLimit = require("graphql-depth-limit");
+const { graphqlUploadExpress } = require("graphql-upload");
 const startServer = async () => {
   const app = Express();
 
@@ -15,18 +16,25 @@ const startServer = async () => {
   const noiseUrl = virtualDirPath + "/noise";
   const noiseBackEndUrl = virtualDirPath + "/noiseBackEnd";
   try {
-    const mongodbUrl = process.env.MongodbUrl || "mongodb://cai007:abc123456@localhost:27017/Noise";
+    const mongodb_url = process.env.mongodb_url || "mongodb://localhost";
+    const mongodb_port = process.env.mongodb_port || 27017;
+    const mongodb_dbname = process.env.mongodb_dbname || "Noise";
+    const mongodb_user = process.env.mongodb_user || "cai007";
+    const mongodb_pass = process.env.mongodb_pass || "abc123456";
 
-    await Mongoose.connect(mongodbUrl, {
+    await Mongoose.connect(mongodb_url, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      //auth: { authSource: "admin" },
-      //user: "cai007",
-      //pass: "abc123456",
+      port: mongodb_port,
+      dbName: mongodb_dbname,
+      auth: { authSource: mongodb_dbname },
+      user: mongodb_user,
+      pass: mongodb_pass,
     });
 
     app.use(noiseUrl, Express.static(__dirname + "/public/noise")); //使用靜態資料夾
     app.use(noiseBackEndUrl, Express.static(__dirname + "/public/noiseBackEnd")); //使用靜態資料夾
+    app.use(graphqlUploadExpress({ maxFileSize: 1000000000, maxFiles: 10 }));
 
     const noiseServer = new ApolloServer({
       typeDefs: noise_typeDefs,
@@ -36,7 +44,12 @@ const startServer = async () => {
       context: ({ req }) => ({ token: req.headers["x-token"] }),
       validationRules: [depthLimit(5)],
     });
-    noiseServer.applyMiddleware({ app, path: noiseUrl + "/api" });
+
+    app.use(
+      noiseServer.getMiddleware({
+        path: noiseUrl + "/api",
+      })
+    );
 
     const noiseBackEndServer = new ApolloServer({
       typeDefs: noiseBackEnd_typeDefs,
@@ -45,8 +58,12 @@ const startServer = async () => {
       playground: true,
       context: ({ req }) => ({ token: req.headers["x-token"] }),
       validationRules: [depthLimit(5)],
+      uploads: false,
     });
-    noiseBackEndServer.applyMiddleware({ app, path: noiseBackEndUrl + "/api" });
+    noiseBackEndServer.applyMiddleware({
+      app,
+      path: noiseBackEndUrl + "/api",
+    });
   } catch (e) {
     app.get(noiseUrl, (req, res) => {
       res.send("資料庫連接失敗");
