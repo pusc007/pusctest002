@@ -16,20 +16,16 @@ const startServer = async () => {
   const noiseUrl = virtualDirPath + "/noise";
   const noiseBackEndUrl = virtualDirPath + "/noiseBackEnd";
   try {
-    const mongodb_url = process.env.mongodb_url || "mongodb://localhost";
-    const mongodb_port = process.env.mongodb_port || 27017;
-    const mongodb_dbname = process.env.mongodb_dbname || "Noise";
-    const mongodb_user = process.env.mongodb_user || "cai007";
-    const mongodb_pass = process.env.mongodb_pass || "abc123456";
+    const mongodb_url = process.env.mongodb_url || "mongodb://cai007:abc123456@127.0.0.1:27017/Noise";
 
     await Mongoose.connect(mongodb_url, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      port: mongodb_port,
+      /*port: mongodb_port,
       dbName: mongodb_dbname,
       auth: { authSource: mongodb_dbname },
       user: mongodb_user,
-      pass: mongodb_pass,
+      pass: mongodb_pass,*/
     });
 
     app.use(noiseUrl, Express.static(__dirname + "/public/noise")); //使用靜態資料夾
