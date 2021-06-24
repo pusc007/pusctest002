@@ -24,12 +24,12 @@ const ftpConnect = async (client) => {
       password: ftp_pass,
     });
   } catch (e) {
-    //console.log(err);
+    console.log(e);
     //throw new Error(JSON.stringify({ type: "error", text: e.message }));
     throw new Error(JSON.stringify({ type: "error", text: "錯誤" }));
   }
 };
-ftpConnect(client);
+//ftpConnect(client);
 
 const SECRET = "93643860-b464-11eb-8529-0242ac130003";
 
@@ -58,7 +58,7 @@ const checkToken = async (token) => {
   }
 };
 
-const uploadFTP = async (client, stream, src) => {
+const uploadFTP = async (client, stream, dirPath, filename) => {
   /*
       const path = "uploads/" + filename;
       stream
@@ -71,7 +71,8 @@ const uploadFTP = async (client, stream, src) => {
         });*/
   if (client.closed) await ftpConnect(client);
   try {
-    await client.uploadFrom(stream, src);
+    await client.ensureDir(dirPath);
+    await client.uploadFrom(stream, filename);
   } catch (e) {
     if (e.code === 550) {
       throw new Error(JSON.stringify({ type: "fail", text: "失敗" }));
@@ -216,11 +217,12 @@ module.exports = {
 
       //建立使用者
       if (input.postponedProve) {
-        const { createReadStream, mimetype, encoding, filename } = await input.postponedProve;
+        const { createReadStream } = await input.postponedProve;
         const stream = createReadStream();
-        const src = `${ftp_dirname}/prove/${input.casenum}-${input.carnum}.jpg`;
-        await uploadFTP(client, stream, src);
-        input.postponedProve = src;
+        const dirPath = `/${ftp_dirname}/prove/`;
+        const filename = `${input.casenum}-${input.carnum}.jpg`;
+        await uploadFTP(client, stream, dirPath, filename);
+        input.postponedProve = dirPath + filename;
       }
       const user = new User(input);
       try {
@@ -261,11 +263,12 @@ module.exports = {
 
       //編輯使用者
       if (input.postponedProve) {
-        const { createReadStream, mimetype, encoding, filename } = await input.postponedProve;
+        const { createReadStream } = await input.postponedProve;
         const stream = createReadStream();
-        const src = `${ftp_dirname}/prove/${user.casenum}-${user.carnum}.jpg`;
-        await uploadFTP(client, stream, src);
-        input.postponedProve = src;
+        const dirPath = `/${ftp_dirname}/prove/`;
+        const filename = `${user.casenum}-${user.carnum}.jpg`;
+        await uploadFTP(client, stream, dirPath, filename);
+        input.postponedProve = dirPath + filename;
       } else if (input.hasOwnProperty("postponedProve")) {
         const src = `${ftp_dirname}/prove/${user.casenum}-${user.carnum}.jpg`;
         await deleteFTP(client, src);
