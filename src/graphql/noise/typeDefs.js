@@ -1,5 +1,6 @@
 const { gql } = require("apollo-server-express");
 module.exports = gql`
+  scalar Upload
   scalar Date
   type User {
     casenum: String!
@@ -58,6 +59,8 @@ module.exports = gql`
     searchOpentimes(type: String!, site: String!, dateS: Date!, dateE: Date!): [Opentime!]!
     #驗證token
     verificationToken: Boolean
+    #下載圖片
+    postponedProveDownload: String
   }
   type Mutation {
     #登入
@@ -68,6 +71,8 @@ module.exports = gql`
     extension(site: String!, dateS: Date!, dateE: Date!): String
     #移轉縣市
     transfer(city: String!): String
+    #其他展延
+    otherExtension(postponedContent: String!, postponedYM: String!, postponedProve: Upload!): String
     #編輯聯絡資訊
     editContact(contactName: String!, contactPhone: String!, contactEmail: String!): String
   }

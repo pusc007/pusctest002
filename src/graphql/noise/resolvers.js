@@ -1,36 +1,26 @@
-const { Admin, User, Site, Opentime } = require("@src/mongoose/Noise");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const { User, Site, Opentime } = require("@src/mongoose/Noise");
 const Queue = require("@src/libs/Queue.js");
 const Moment = require("moment");
+const { GraphQLUpload } = require("graphql-upload");
+const ftp = require("basic-ftp");
+const { ftpConnectFun, uploadFTP, deleteFTP, downloadFTP } = require("@src/libs/ftpFuns.js");
+const { createToken, checkTokenFun } = require("@src/libs/funs.js");
 
-const SECRET = "93643860-b464-11eb-8529-0242ac130003";
-const createToken = ({ id, email, name }) =>
-  jwt.sign({ id, email, name }, SECRET, {
-    expiresIn: "1d",
-  });
+const ftp_host = process.env.ftp_host || "127.0.0.1";
+const ftp_port = process.env.ftp_port || 21;
+const ftp_dirname = process.env.ftp_dirname || "uploads";
+const ftp_user = process.env.ftp_user || "cai_test";
+const ftp_pass = process.env.ftp_pass || "123456";
 
-const checkToken = async (token) => {
-  if (token) {
-    try {
-      const me = await jwt.verify(token, SECRET);
-      const user = await User.findOne({ _id: me.id });
-      if (!user) throw new Error(JSON.stringify({ type: "accountNoExisted", text: "帳號不存在，請重新登入" }));
-      return user;
-    } catch (e) {
-      const message = e.message;
-      if (message === "invalid token" || message === "invalid signature" || message === "jwt malformed") {
-        throw new Error(JSON.stringify({ type: "tokenInvalid", text: "認證有問題，請重新登入" }));
-      } else if (message === "jwt expired") {
-        throw new Error(JSON.stringify({ type: "tokenExpired", text: "認證已過期，請重新登入" }));
-      } else {
-        throw new Error(JSON.stringify({ type: "tokenError", text: "認證有錯誤，請重新登入" }));
-      }
-    }
-  } else {
-    throw new Error(JSON.stringify({ type: "tokenNoExisted", text: "無認證，請重新登入" }));
-  }
-};
+const client = new ftp.Client();
+client.ftp.verbose = true;
+const ftpConnect = ftpConnectFun(ftp_host, ftp_port, ftp_user, ftp_pass);
+
+const checkToken = checkTokenFun(async (me) => {
+  const user = await User.findOne({ _id: me.id });
+  if (!user) throw new Error(JSON.stringify({ type: "accountNoExisted", text: "帳號不存在，請重新登入" }));
+  return user;
+});
 const queue = new Queue();
 const checkLimit = async (site, dateS, dateE, type, user) => {
   //取得檢測站點
@@ -88,6 +78,7 @@ const checkLimit = async (site, dateS, dateE, type, user) => {
   if (count >= opentime.maxcount) return new Error(JSON.stringify({ type: "limit", text: "超過上限人數" }));
 };
 module.exports = {
+  Upload: GraphQLUpload,
   Query: {
     user: async (root, {}, context) => {
       //檢查令牌
@@ -200,6 +191,14 @@ module.exports = {
 
       return true;
     },
+    postponedProveDownload: async (root, {}, context) => {
+      //檢查令牌
+      const user = await checkToken(context.token);
+      if (user.postponedProve) {
+        if (client.closed) await ftpConnect(client);
+        return await downloadFTP(client, user.postponedProve);
+      }
+    },
   },
   Mutation: {
     login: async (root, { casenum, carnum }, context) => {
@@ -266,6 +265,21 @@ module.exports = {
       //if (user.city) throw new Error(JSON.stringify({ type: "transfer", text: "已移轉過" }));
 
       user.city = city;
+      user.displayPages = null;
+      await user.save();
+    },
+    otherExtension: async (root, { postponedContent, postponedYM, postponedProve }, context) => {
+      const user = await checkToken(context.token);
+
+      const { createReadStream } = await postponedProve;
+      const stream = createReadStream();
+      const dirPath = `/${ftp_dirname}/prove/`;
+      const filename = `${user.casenum}-${user.carnum}.jpg`;
+      if (client.closed) await ftpConnect(client);
+      await uploadFTP(client, stream, dirPath, filename);
+      user.postponedProve = dirPath + filename;
+      user.postponedContent = postponedContent;
+      user.postponedYM = postponedYM;
       user.displayPages = null;
       await user.save();
     },

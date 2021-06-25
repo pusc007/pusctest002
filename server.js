@@ -39,13 +39,12 @@ const startServer = async () => {
       playground: true,
       context: ({ req }) => ({ token: req.headers["x-token"] }),
       validationRules: [depthLimit(5)],
+      uploads: false,
     });
-
-    app.use(
-      noiseServer.getMiddleware({
-        path: noiseUrl + "/api",
-      })
-    );
+    noiseServer.applyMiddleware({
+      app,
+      path: noiseUrl + "/api",
+    });
 
     const noiseBackEndServer = new ApolloServer({
       typeDefs: noiseBackEnd_typeDefs,
