@@ -22,19 +22,17 @@ const checkToken = checkTokenFun(async (me) => {
   return user;
 });
 const queue = new Queue();
-const checkLimit = async (site, dateS, dateE, type, user) => {
+const checkLimit = async (site, dateS, dateE) => {
   //取得檢測站點
   const siteDoc = await Site.findOne({ sitename: site });
   if (!siteDoc) return new Error(JSON.stringify({ type: "siteNoExisted", text: "檢測站點不存在" }));
 
   //取得開放時間
-  const o = [{ dateS: { $lte: dateE }, dateE: { $gte: dateS } }];
-  if (type === "redate") {
-    o.push({ dateS: { $lte: user.redateBoundE }, dateE: { $gte: user.redateBoundS } });
-  } else if (type === "exdate") {
-    o.push({ dateS: { $lte: user.exdateBoundE }, dateE: { $gte: user.exdateBoundS } });
-  }
-  const opentime = await Opentime.findOne({ siteId: siteDoc._id, $and: o });
+  const opentime = await Opentime.findOne({
+    siteId: siteDoc._id,
+    dateS: { $eq: new Date(dateS) },
+    dateE: { $eq: new Date(dateE) },
+  });
   if (!opentime) return new Error(JSON.stringify({ type: "opentimeNoExisted", text: "開放時間不存在" }));
 
   const redateDocs = await User.aggregate([
@@ -219,7 +217,7 @@ module.exports = {
       if (queue.busy) throw new Error(JSON.stringify({ type: "busy", text: "忙線中請稍後在執行" }));
 
       const message = await queue.add({ site, dateS, dateE }, async ({ site, dateS, dateE }) => {
-        const message = await checkLimit(site, dateS, dateE, "redate", user);
+        const message = await checkLimit(site, dateS, dateE);
         if (!message) {
           user.resite = site;
           user.redateS = dateS;
@@ -242,7 +240,7 @@ module.exports = {
       if (queue.busy) throw new Error(JSON.stringify({ type: "busy", text: "忙線中請稍後在執行" }));
 
       const message = await queue.add({ site, dateS, dateE }, async ({ site, dateS, dateE }) => {
-        const message = await checkLimit(site, dateS, dateE, "exdate", user);
+        const message = await checkLimit(site, dateS, dateE);
         if (!message) {
           user.exsite = site;
           user.exdateS = dateS;
