@@ -227,6 +227,22 @@ module.exports = {
         }
       }
     },
+    importSites: async (root, { input }, context) => {
+      //檢查令牌
+      await checkToken(context.token);
+
+      //建立檢測站點群
+      const list = input.map((el) => {
+        return {
+          updateOne: {
+            filter: { sitename: el.sitename, address: el.address },
+            update: { $set: el },
+            upsert: true,
+          },
+        };
+      });
+      await Site.bulkWrite(list);
+    },
     editSite: async (root, { id, input }, context) => {
       //檢查令牌
       await checkToken(context.token);
@@ -255,7 +271,7 @@ module.exports = {
       //刪除檢測站點
       await Site.deleteOne({ _id: id });
 
-      await Opentime.remove({ siteId: id });
+      await Opentime.deleteOne({ siteId: id });
     },
 
     createOpentime: async (root, { input }, context) => {

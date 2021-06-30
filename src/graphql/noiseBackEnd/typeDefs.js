@@ -190,6 +190,8 @@ module.exports = gql`
 
     #建立驗車站點
     createSite(input: SiteInput!): String
+    #匯入驗車站點群
+    importSites(input: [SiteInput!]!): String
     #編輯驗車站點
     editSite(id: String!, input: EditSiteInput!): String
     #刪除驗車站點
