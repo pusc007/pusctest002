@@ -199,6 +199,8 @@ module.exports = gql`
 
     #建立驗車開放時間
     createOpentime(input: OpentimeInput!): String
+    #建立驗車開放時間群
+    createOpentimes(input: [OpentimeInput!]!): String
     #編輯驗車開放時間
     editOpentime(id: String!, input: EditOpentimeInput!): String
     #刪除驗車開放時間

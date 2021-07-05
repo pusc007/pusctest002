@@ -276,6 +276,7 @@ module.exports = {
       if (client.closed) await ftpConnect(client);
       await uploadFTP(client, stream, dirPath, filename);
       user.postponedProve = dirPath + filename;
+
       user.postponedContent = postponedContent;
       user.postponedYM = postponedYM;
       user.displayPages = null;

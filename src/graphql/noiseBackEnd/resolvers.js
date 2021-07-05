@@ -167,7 +167,6 @@ module.exports = {
 
       const user = await User.findById(id);
       if (!user) throw new Error(JSON.stringify({ type: "idNoExisted", text: "ID不存在" }));
-
       //編輯使用者
       if (input.postponedProve) {
         const { createReadStream } = await input.postponedProve;
@@ -178,7 +177,7 @@ module.exports = {
         await uploadFTP(client, stream, dirPath, filename);
         input.postponedProve = dirPath + filename;
       } else if (input.hasOwnProperty("postponedProve")) {
-        const src = `${ftp_dirname}/prove/${user.casenum}-${user.carnum}.jpg`;
+        const src = `/${ftp_dirname}/prove/${user.casenum}-${user.carnum}.jpg`;
         if (client.closed) await ftpConnect(client);
         await deleteFTP(client, src);
         input.postponedProve = null;
@@ -298,6 +297,31 @@ module.exports = {
           }
         }
       }
+    },
+    createOpentimes: async (root, { input }, context) => {
+      //檢查令牌
+      await checkToken(context.token);
+
+      const siteList = input.map((el) => Site.findOne({ sitename: el.site }));
+      const sites = await Promise.all(siteList);
+
+      const temp_input = input.map((el, index) => {
+        delete el.site;
+        el.siteId = sites[index]._id;
+        return el;
+      });
+
+      //建立開放時間群
+      const list = temp_input.map((el, index) => {
+        return {
+          updateOne: {
+            filter: { siteId: el.siteId, dateS: el.dateS, dateE: el.dateE },
+            update: { $set: el },
+            upsert: true,
+          },
+        };
+      });
+      await Opentime.bulkWrite(list);
     },
     editOpentime: async (root, { id, input }, context) => {
       //檢查令牌

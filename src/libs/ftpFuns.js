@@ -32,6 +32,8 @@ const uploadFTP = async (client, stream, dirPath, filename) => {
   } catch (e) {
     if (e.code === 550) {
       throw new Error(JSON.stringify({ type: "fail", text: "失敗" }));
+    } else if (e.statusCode === 413) {
+      throw new Error(JSON.stringify({ type: "fileExceeds", text: "檔案超過2MB" }));
     } else {
       throw new Error(JSON.stringify({ type: "error", text: e.message }));
     }

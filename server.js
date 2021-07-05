@@ -30,7 +30,7 @@ const startServer = async () => {
 
     app.use(noiseUrl, Express.static(__dirname + "/public/noise")); //使用靜態資料夾
     app.use(noiseBackEndUrl, Express.static(__dirname + "/public/noiseBackEnd")); //使用靜態資料夾
-    app.use(graphqlUploadExpress({ maxFileSize: 1000000000, maxFiles: 10 }));
+    app.use(graphqlUploadExpress({ maxFileSize: 2097152, maxFiles: 1 }));
 
     const noiseServer = new ApolloServer({
       typeDefs: noise_typeDefs,
