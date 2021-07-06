@@ -196,6 +196,8 @@ module.exports = gql`
     editSite(id: String!, input: EditSiteInput!): String
     #刪除驗車站點
     deleteSite(id: String!): String
+    #刪除驗車站點群
+    deleteSites(id: [String!]!): String
 
     #建立驗車開放時間
     createOpentime(input: OpentimeInput!): String

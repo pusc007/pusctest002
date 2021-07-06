@@ -270,7 +270,16 @@ module.exports = {
       //刪除檢測站點
       await Site.deleteOne({ _id: id });
 
-      await Opentime.deleteOne({ siteId: id });
+      await Opentime.deleteMany({ siteId: id });
+    },
+    deleteSites: async (root, { id }, context) => {
+      //檢查令牌
+      await checkToken(context.token);
+
+      //刪除檢測站點
+      await Site.deleteMany({ _id: id });
+
+      await Opentime.deleteMany({ siteId: id });
     },
 
     createOpentime: async (root, { input }, context) => {
