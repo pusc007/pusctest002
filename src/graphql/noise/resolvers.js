@@ -35,43 +35,43 @@ const checkLimit = async (site, dateS, dateE) => {
   });
   if (!opentime) return new Error(JSON.stringify({ type: "opentimeNoExisted", text: "開放時間不存在" }));
 
-  const redateDocs = await User.aggregate([
+  const reDateDocs = await User.aggregate([
     {
       $match: {
-        resite: site,
-        redateS: { $eq: new Date(dateS) },
-        redateE: { $eq: new Date(dateE) },
+        reSite: site,
+        reDateS: { $eq: new Date(dateS) },
+        reDateE: { $eq: new Date(dateE) },
       },
     },
     {
       $group: {
-        _id: { dateS: "$redateS", dateE: "$redateE" },
+        _id: { dateS: "$reDateS", dateE: "$reDateE" },
         count: { $sum: 1 },
       },
     },
   ]);
 
-  const exdateDocs = await User.aggregate([
+  const exDateDocs = await User.aggregate([
     {
       $match: {
-        exsite: site,
-        exdateS: { $eq: new Date(dateS) },
-        exdateE: { $eq: new Date(dateE) },
+        exSite: site,
+        exDateS: { $eq: new Date(dateS) },
+        exDateE: { $eq: new Date(dateE) },
       },
     },
     {
       $group: {
-        _id: { dateS: "$exdateS", dateE: "$exdateE" },
+        _id: { dateS: "$exDateS", dateE: "$exDateE" },
         count: { $sum: 1 },
       },
     },
   ]);
   let count = 0;
-  if (redateDocs.length) {
-    count += redateDocs[0].count;
+  if (reDateDocs.length) {
+    count += reDateDocs[0].count;
   }
-  if (exdateDocs.length) {
-    count += exdateDocs[0].count;
+  if (exDateDocs.length) {
+    count += exDateDocs[0].count;
   }
   if (count >= opentime.maxcount) return new Error(JSON.stringify({ type: "limit", text: "超過上限人數" }));
 };
@@ -104,43 +104,43 @@ module.exports = {
         { dateS: { $lte: dateE }, dateE: { $gte: dateS } },
         { dateS: { $gt: Moment().format("YYYY-MM-DDT23:59:59.999+00:00") } },
       ];
-      if (type === "redate") {
-        o.push({ dateS: { $lte: user.redateBoundE }, dateE: { $gte: user.redateBoundS } });
-      } else if (type === "exdate") {
-        o.push({ dateS: { $lte: user.exdateBoundE }, dateE: { $gte: user.exdateBoundS } });
+      if (type === "reDate") {
+        o.push({ dateS: { $lte: user.reDateBoundE }, dateE: { $gte: user.reDateBoundS } });
+      } else if (type === "exDate") {
+        o.push({ dateS: { $lte: user.exDateBoundE }, dateE: { $gte: user.exDateBoundS } });
       }
 
       const opentimes = await Opentime.find({ siteId: siteDoc._id, $and: o });
 
       if (!opentimes.length) return [];
 
-      const redateDocs = await User.aggregate([
+      const reDateDocs = await User.aggregate([
         {
           $match: {
-            resite: site,
-            redateS: { $lte: dateE },
-            redateE: { $gte: dateS },
+            reSite: site,
+            reDateS: { $lte: dateE },
+            reDateE: { $gte: dateS },
           },
         },
         {
           $group: {
-            _id: { dateS: "$redateS", dateE: "$redateE" },
+            _id: { dateS: "$reDateS", dateE: "$reDateE" },
             count: { $sum: 1 },
           },
         },
       ]);
 
-      const exdateDocs = await User.aggregate([
+      const exDateDocs = await User.aggregate([
         {
           $match: {
-            exsite: site,
-            exdateS: { $lte: dateE },
-            exdateE: { $gte: dateS },
+            exSite: site,
+            exDateS: { $lte: dateE },
+            exDateE: { $gte: dateS },
           },
         },
         {
           $group: {
-            _id: { dateS: "$exdateS", dateE: "$exdateE" },
+            _id: { dateS: "$exDateS", dateE: "$exDateE" },
             count: { $sum: 1 },
           },
         },
@@ -157,9 +157,9 @@ module.exports = {
         }
       };
       return opentimes.map((info) => {
-        const redateCount = redateDocs.reduce(reduceFun(info), 0);
-        const exdateCount = exdateDocs.reduce(reduceFun(info), 0);
-        info.count = redateCount + exdateCount;
+        const reDateCount = reDateDocs.reduce(reduceFun(info), 0);
+        const exDateCount = exDateDocs.reduce(reduceFun(info), 0);
+        info.count = reDateCount + exDateCount;
         return info;
       });
     },
@@ -175,10 +175,10 @@ module.exports = {
         { dateS: { $lte: dateE }, dateE: { $gte: dateS } },
         { dateS: { $gt: Moment().format("YYYY-MM-DDT23:59:59.999+00:00") } },
       ];
-      if (type === "redate") {
-        o.push({ dateS: { $lte: user.redateBoundE }, dateE: { $gte: user.redateBoundS } });
-      } else if (type === "exdate") {
-        o.push({ dateS: { $lte: user.exdateBoundE }, dateE: { $gte: user.exdateBoundS } });
+      if (type === "reDate") {
+        o.push({ dateS: { $lte: user.reDateBoundE }, dateE: { $gte: user.reDateBoundS } });
+      } else if (type === "exDate") {
+        o.push({ dateS: { $lte: user.exDateBoundE }, dateE: { $gte: user.exDateBoundS } });
       }
 
       return await Opentime.find({ siteId: siteDoc._id, $and: o });
@@ -207,7 +207,7 @@ module.exports = {
       const token = await createToken({ id: user._id, email: user.casenum + user.carnum, name: user.username });
       return { token };
     },
-    reservation: async (root, { site, dateS, dateE }, context) => {
+    reservation: async (root, { reSite, reDateS, reDateE }, context) => {
       const user = await checkToken(context.token);
 
       if (!user.displayPages) throw new Error(JSON.stringify({ type: "noAuthority", text: "無權限" }));
@@ -216,12 +216,12 @@ module.exports = {
 
       if (queue.busy) throw new Error(JSON.stringify({ type: "busy", text: "忙線中請稍後在執行" }));
 
-      const message = await queue.add({ site, dateS, dateE }, async ({ site, dateS, dateE }) => {
-        const message = await checkLimit(site, dateS, dateE);
+      const message = await queue.add({ reSite, reDateS, reDateE }, async ({ reSite, reDateS, reDateE }) => {
+        const message = await checkLimit(reSite, reDateS, reDateE);
         if (!message) {
-          user.resite = site;
-          user.redateS = dateS;
-          user.redateE = dateE;
+          user.reSite = reSite;
+          user.reDateS = reDateS;
+          user.reDateE = reDateE;
           user.displayPages = null;
           await user.save();
         }
@@ -230,7 +230,7 @@ module.exports = {
       queue.next();
       if (message) throw message;
     },
-    extension: async (root, { site, dateS, dateE }, context) => {
+    extension: async (root, { exSite, exDateS, exDateE, exReason }, context) => {
       const user = await checkToken(context.token);
 
       if (!user.displayPages) throw new Error(JSON.stringify({ type: "noAuthority", text: "無權限" }));
@@ -239,21 +239,26 @@ module.exports = {
 
       if (queue.busy) throw new Error(JSON.stringify({ type: "busy", text: "忙線中請稍後在執行" }));
 
-      const message = await queue.add({ site, dateS, dateE }, async ({ site, dateS, dateE }) => {
-        const message = await checkLimit(site, dateS, dateE);
-        if (!message) {
-          user.exsite = site;
-          user.exdateS = dateS;
-          user.exdateE = dateE;
-          user.displayPages = null;
-          await user.save();
+      const message = await queue.add(
+        { exSite, exDateS, exDateE, exReason },
+        async ({ exSite, exDateS, exDateE, exReason }) => {
+          const message = await checkLimit(exSite, exDateS, exDateE);
+          if (!message) {
+            user.exSite = exSite;
+            user.exDateS = exDateS;
+            user.exDateE = exDateE;
+            user.exReason = exReason;
+            user.displayPages = null;
+            user.exRequestStatus = "審核中";
+            await user.save();
+          }
+          return message;
         }
-        return message;
-      });
+      );
       queue.next();
       if (message) throw message;
     },
-    transfer: async (root, { city }, context) => {
+    transfer: async (root, { city, cityReason }, context) => {
       const user = await checkToken(context.token);
 
       if (!user.displayPages) throw new Error(JSON.stringify({ type: "noAuthority", text: "無權限" }));
@@ -263,11 +268,17 @@ module.exports = {
       //if (user.city) throw new Error(JSON.stringify({ type: "transfer", text: "已移轉過" }));
 
       user.city = city;
+      user.cityReason = cityReason;
       user.displayPages = null;
+      user.cityRequestStatus = "審核中";
       await user.save();
     },
-    otherExtension: async (root, { postponedContent, postponedYM, postponedProve }, context) => {
+    otherExtension: async (root, { postponedReason, postponedYM, postponedProve }, context) => {
       const user = await checkToken(context.token);
+
+      if (!user.displayPages) throw new Error(JSON.stringify({ type: "noAuthority", text: "無權限" }));
+      const ary = user.displayPages.split(",");
+      if (!ary.includes("otherExtension")) throw new Error(JSON.stringify({ type: "noAuthority", text: "無權限" }));
 
       const { createReadStream } = await postponedProve;
       const stream = createReadStream();
@@ -277,9 +288,10 @@ module.exports = {
       await uploadFTP(client, stream, dirPath, filename);
       user.postponedProve = dirPath + filename;
 
-      user.postponedContent = postponedContent;
+      user.postponedReason = postponedReason;
       user.postponedYM = postponedYM;
       user.displayPages = null;
+      user.postponedRequestStatus = "審核中";
       await user.save();
     },
     editContact: async (root, { contactName, contactPhone, contactEmail }, context) => {

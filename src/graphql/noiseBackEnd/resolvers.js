@@ -22,11 +22,6 @@ const checkToken = checkTokenFun(async (me) => {
 module.exports = {
   Upload: GraphQLUpload,
   Query: {
-    users: async (root, {}, context) => {
-      //檢查令牌
-      await checkToken(context.token);
-      return await User.find();
-    },
     user: async (root, { id }, context) => {
       //檢查令牌
       await checkToken(context.token);
@@ -44,24 +39,56 @@ module.exports = {
       if (!user) throw new Error(JSON.stringify({ type: "dataNoExisted", text: "無資料" }));
       return user;
     },
-    searchUsers: async (root, { startDate, endDate, state }, context) => {
+    users: async (root, {}, context) => {
+      //檢查令牌
+      await checkToken(context.token);
+      return await User.find();
+    },
+    searchUsers_reservation: async (root, { startDate, endDate }, context) => {
       //檢查令牌
       await checkToken(context.token);
 
-      //條件查詢
-      if (state === "reserv") {
+      return await User.find({
+        reDateS: { $lte: endDate },
+        reDateE: { $gte: startDate },
+      });
+    },
+    searchUsers_extension: async (root, { startDate, endDate }, context) => {
+      //檢查令牌
+      await checkToken(context.token);
+
+      return await User.find({
+        exDateS: { $lte: endDate },
+        exDateE: { $gte: startDate },
+      });
+    },
+    searchUsers_transfer: async (root, { city }, context) => {
+      //檢查令牌
+      await checkToken(context.token);
+      if (city && city !== "全部") {
         return await User.find({
-          redateS: { $lte: endDate },
-          redateE: { $gte: startDate },
+          city,
         });
-      } else if (state === "extend") {
+      } else {
         return await User.find({
-          exdateS: { $lte: endDate },
-          exdateE: { $gte: startDate },
+          $and: [
+            {
+              city: { $ne: null },
+            },
+            {
+              city: { $ne: "" },
+            },
+          ],
         });
-      } else if (state === "all") {
-        return await User.find();
       }
+    },
+    searchUsers_caseInquiry: async (root, { carnum }, context) => {
+      //檢查令牌
+      await checkToken(context.token);
+      const reg = new RegExp(carnum, "i");
+      return await User.find({
+        carnum: { $regex: reg },
+      });
     },
     sites: async (root, {}, context) => {
       //檢查令牌
@@ -183,6 +210,7 @@ module.exports = {
         input.postponedProve = null;
       }
       for (let key in input) {
+        //user[key] = input[key] !== null && input[key] !== "" ? input[key] : undefined;//刪除key
         user[key] = input[key];
       }
       try {

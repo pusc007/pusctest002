@@ -8,25 +8,30 @@ module.exports = gql`
     username: String!
     idcard: String!
     address: String!
-    redateBoundS: Date!
-    redateBoundE: Date!
-    exdateBoundS: Date!
-    exdateBoundE: Date!
-    redateS: Date
-    redateE: Date
-    exdateS: Date
-    exdateE: Date
+    reDateBoundS: Date!
+    reDateBoundE: Date!
+    exDateBoundS: Date!
+    exDateBoundE: Date!
+    reDateS: Date
+    reDateE: Date
+    exDateS: Date
+    exDateE: Date
     city: String
-    resite: String
-    exsite: String
+    reSite: String
+    exSite: String
     result: String
     contactName: String
     contactPhone: String
     contactEmail: String
-    postponedContent: String
+    postponedReason: String
     postponedYM: String
     postponedProve: Upload
     displayPages: String
+    exReason: String
+    exRequestStatus: String
+    cityReason: String
+    cityRequestStatus: String
+    postponedRequestStatus: String
   }
   input UserInput0 {
     casenum: String!
@@ -34,25 +39,30 @@ module.exports = gql`
     username: String!
     idcard: String!
     address: String!
-    redateBoundS: Date!
-    redateBoundE: Date!
-    exdateBoundS: Date!
-    exdateBoundE: Date!
-    redateS: Date
-    redateE: Date
-    exdateS: Date
-    exdateE: Date
+    reDateBoundS: Date!
+    reDateBoundE: Date!
+    exDateBoundS: Date!
+    exDateBoundE: Date!
+    reDateS: Date
+    reDateE: Date
+    exDateS: Date
+    exDateE: Date
     city: String
-    resite: String
-    exsite: String
+    reSite: String
+    exSite: String
     result: String
     contactName: String
     contactPhone: String
     contactEmail: String
-    postponedContent: String
+    postponedReason: String
     postponedYM: String
     postponedProve: String
     displayPages: String
+    exReason: String
+    exRequestStatus: String
+    cityReason: String
+    cityRequestStatus: String
+    postponedRequestStatus: String
   }
   input EditUserInput {
     casenum: String
@@ -60,25 +70,30 @@ module.exports = gql`
     username: String
     idcard: String
     address: String
-    redateBoundS: Date
-    redateBoundE: Date
-    exdateBoundS: Date
-    exdateBoundE: Date
-    redateS: Date
-    redateE: Date
-    exdateS: Date
-    exdateE: Date
+    reDateBoundS: Date
+    reDateBoundE: Date
+    exDateBoundS: Date
+    exDateBoundE: Date
+    reDateS: Date
+    reDateE: Date
+    exDateS: Date
+    exDateE: Date
     city: String
-    resite: String
-    exsite: String
+    reSite: String
+    exSite: String
     result: String
     contactName: String
     contactPhone: String
     contactEmail: String
-    postponedContent: String
+    postponedReason: String
     postponedYM: String
     postponedProve: Upload
     displayPages: String
+    exReason: String
+    exRequestStatus: String
+    cityReason: String
+    cityRequestStatus: String
+    postponedRequestStatus: String
   }
   type User {
     id: ID!
@@ -87,25 +102,30 @@ module.exports = gql`
     username: String!
     idcard: String!
     address: String!
-    redateBoundS: Date!
-    redateBoundE: Date!
-    exdateBoundS: Date!
-    exdateBoundE: Date!
-    redateS: Date
-    redateE: Date
-    exdateS: Date
-    exdateE: Date
+    reDateBoundS: Date!
+    reDateBoundE: Date!
+    exDateBoundS: Date!
+    exDateBoundE: Date!
+    reDateS: Date
+    reDateE: Date
+    exDateS: Date
+    exDateE: Date
     city: String
-    resite: String
-    exsite: String
+    reSite: String
+    exSite: String
     result: String
     contactName: String
     contactPhone: String
     contactEmail: String
-    postponedContent: String
+    postponedReason: String
     postponedYM: String
     postponedProve: String
     displayPages: String
+    exReason: String
+    exRequestStatus: String
+    cityReason: String
+    cityRequestStatus: String
+    postponedRequestStatus: String
     created: Date!
     updated: Date!
   }
@@ -151,14 +171,24 @@ module.exports = gql`
   }
 
   type Query {
-    #取得驗車使用者群
-    users: [User!]!
     #取得驗車使用者
     user(id: String!): User!
     #搜尋驗車使用者
     searchUser(casenum: String!, carnum: String!): User!
+
     #搜尋驗車使用者群
-    searchUsers(startDate: Date!, endDate: Date!, state: String!): [User!]!
+    #searchUsers(startDate: Date!, endDate: Date!, state: String!): [User!]!
+
+    #驗車使用者群
+    users: [User!]!
+    #搜尋驗車使用者群_預約
+    searchUsers_reservation(startDate: Date!, endDate: Date!): [User!]!
+    #搜尋驗車使用者群_展延
+    searchUsers_extension(startDate: Date!, endDate: Date!): [User!]!
+    #搜尋驗車使用者群_移轉外縣市
+    searchUsers_transfer(city: String!): [User!]!
+    #搜尋驗車使用者群_案件查詢
+    searchUsers_caseInquiry(carnum: String!): [User!]!
 
     #搜尋驗車站點群
     sites: [Site!]!

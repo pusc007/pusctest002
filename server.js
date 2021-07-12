@@ -35,8 +35,8 @@ const startServer = async () => {
     const noiseServer = new ApolloServer({
       typeDefs: noise_typeDefs,
       resolvers: noise_resolvers,
-      introspection: true,
-      playground: true,
+      introspection: false,
+      playground: false,
       context: ({ req }) => ({ token: req.headers["x-token"] }),
       validationRules: [depthLimit(5)],
       uploads: false,
@@ -49,8 +49,8 @@ const startServer = async () => {
     const noiseBackEndServer = new ApolloServer({
       typeDefs: noiseBackEnd_typeDefs,
       resolvers: noiseBackEnd_resolvers,
-      introspection: true,
-      playground: true,
+      introspection: false,
+      playground: false,
       context: ({ req }) => ({ token: req.headers["x-token"] }),
       validationRules: [depthLimit(5)],
       uploads: false,
